@@ -35,12 +35,14 @@ const ReservoirTracker = () => {
                
               </div>
         </div>
-      <SelectCounty 
-        currCounty={currCounty}
-        setCurrCounty={setCurrCounty}
-        setCurrReservoir={setCurrReservoir}
-      />
-      {currReservoir && currReservoir.value && <ReservoirInfo currReservoir={currReservoir}/>}
+        <div className='flex'>
+          <SelectCounty 
+            currCounty={currCounty}
+            setCurrCounty={setCurrCounty}
+            setCurrReservoir={setCurrReservoir}
+          />
+          <ReservoirInfo currReservoir={currReservoir} setCurrReservoir={setCurrReservoir}/>
+       </div>
 
     </div>
   )

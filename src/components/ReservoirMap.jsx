@@ -23,8 +23,9 @@ function MapAutoCenter({ position }) {
   }
 
 export default function ReservoirMap({ allStationMeta, setCurrReservoir, setShowMap }) {
+    console.log(allStationMeta);
   return (
-    <div className="h-[500px] rounded-2xl overflow-hidden shadow-xl">
+    <div className="h-[500px] w-[500px] rounded-2xl overflow-hidden shadow-xl">
       <MapContainer center={[37.5, -120]} zoom={6} style={{ height: "100%", width: "100%" }}>
         {/* Base map layer */}
         <TileLayer
@@ -32,13 +33,9 @@ export default function ReservoirMap({ allStationMeta, setCurrReservoir, setShow
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
 
-        {/* Auto-center on selected marker */}
-        {allStationMeta && allStationMeta?.[0].latitude && allStationMeta?.[0].longitude && (
-          <MapAutoCenter position={[allStationMeta[0].latitude, allStationMeta[0].longitude]} />
-        )}
-
+       
         {/* Show ALL reservoir markers */}
-        {allStationMeta && allStationMeta
+        {allStationMeta.length > 0 && allStationMeta
           .filter((s) => s.latitude && s.longitude)
           .map((station) => (
             <Marker
@@ -47,7 +44,7 @@ export default function ReservoirMap({ allStationMeta, setCurrReservoir, setShow
               eventHandlers={{
                 click: () => {
                     setCurrReservoir(station);
-                    setShowMap(false);
+                    
                     console.log(station);
                 },
               }}

@@ -54,7 +54,7 @@ const SelectCounty = ({currCounty, setCurrCounty, setCurrReservoir}) => {
                   value : parseInt(c.COUNTY_NUM,10)
                 })
                );
-               console.log(counties);
+              
                setCountyList(counties);
              } catch (err) {
                console.error("Error fetching all counties:", err);
@@ -69,26 +69,30 @@ const SelectCounty = ({currCounty, setCurrCounty, setCurrReservoir}) => {
               );
               const meta = await res.json();
               
-              const result = {};
+              const result = [];
               meta.result.forEach(s => {
-                if (!result[s.COUNTY_NUM]) {
-                  result[s.COUNTY_NUM] = [];
+               
+                  
+                
+                if( s.STATION_NAME.includes('RESERVOIR')){
+                    result.push({
+                    value: s.STATION_ID,
+                    label: s.STATION_NAME,
+                    latitude: s.LATITUDE,
+                    longitude: s.LONGITUDE
+                    });
                 }
-                result[parseInt(s.COUNTY_NUM,10)].push({
-                  value: s.STATION_ID,
-                  label: s.STATION_NAME,
-                  latitude: s.LATITUDE,
-                  longitude: s.LONGITUDE
-                });
               });
               
               setReservoirStations(result);
+              console.log(result);
+              setShowMap(true);
             } catch (err) {
               console.error("Error fetching all station metadata:", err);
             }
           };
     
-          fetchAllCounties();
+          //fetchAllCounties();
           fetchAllStations();
          }, []);
         
@@ -97,25 +101,7 @@ const SelectCounty = ({currCounty, setCurrCounty, setCurrReservoir}) => {
 
     return (
         <div className="transition-all duration-500 ease-in-out transform">
-            <div className="flex flex-wrap justify-center gap-6 mb-10">
-                <Select
-                options={countyList}
-                value={newCounty}
-                currentValue={currCounty}
-                onChange={setNewCounty}
-                placeholder="Select a county...."
-                />
-                <Button
-                className="px-6 h-10 shadow-lg"
-                onClick={() => {
-                    setCurrCounty(newCounty);
-                    setShowMap(true);
-                    setCurrReservoir('');
-                }}
-                >
-                Search
-                </Button>
-            </div>
+            
 
             <AnimatePresence>
                 {showMap && (
@@ -127,7 +113,7 @@ const SelectCounty = ({currCounty, setCurrCounty, setCurrReservoir}) => {
                     transition={{ duration: 0.4 }}
                     >
                     <ReservoirMap
-                        allStationMeta={reservoirStations[currCounty?.value]}
+                        allStationMeta={reservoirStations}
                         setCurrReservoir={setCurrReservoir}
                         setShowMap = {setShowMap}
                     />

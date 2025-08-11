@@ -32,12 +32,12 @@ ChartJS.register(
 
 
 
-export default function ReservoirInfo({currReservoir}) {
+export default function ReservoirInfo({currReservoir, setCurrReservoir}) {
   
   const [reservoirData, setReservoirData] = useState([]);
   const [stationMeta, setStationMeta] = useState(null);
   const [loading, setLoading] = useState(true);
- 
+
   const [granularity, setGranularity] = useState({ value: "month", label: "This Year" });
     
   // Fetch based on granularity
@@ -158,6 +158,7 @@ export default function ReservoirInfo({currReservoir}) {
 
   return (
     <div className="w-full flex">
+        
         <div>
         {stationMeta && (
             <div className="mb-10 text-center">
