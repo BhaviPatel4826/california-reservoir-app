@@ -3,7 +3,7 @@ import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import markerIcon from "leaflet/dist/images/marker-icon.png";
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
-import { MapContainer, TileLayer, Marker, Popup, useMap, } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, useMap,Tooltip } from "react-leaflet";
 
 // Fix for missing Leaflet marker icons
 const DefaultIcon = L.icon({
@@ -25,7 +25,7 @@ function MapAutoCenter({ position }) {
 export default function ReservoirMap({ allStationMeta, setCurrReservoir, setShowMap }) {
     console.log(allStationMeta);
   return (
-    <div className="h-[500px] w-[500px] rounded-2xl overflow-hidden shadow-xl">
+    <div className="h-[500px] w-full rounded-2xl overflow-hidden shadow-xl">
       <MapContainer center={[37.5, -120]} zoom={6} style={{ height: "100%", width: "100%" }}>
         {/* Base map layer */}
         <TileLayer
@@ -44,16 +44,14 @@ export default function ReservoirMap({ allStationMeta, setCurrReservoir, setShow
               eventHandlers={{
                 click: () => {
                     setCurrReservoir(station);
-                    
-                    console.log(station);
                 },
               }}
             >
-              <Popup>
+              <Tooltip>
                 <strong>{station.label}</strong>
                 <br />
                 {station.value || "Unknown Station Id"}
-              </Popup>
+              </Tooltip>
             </Marker>
           ))}
       </MapContainer>

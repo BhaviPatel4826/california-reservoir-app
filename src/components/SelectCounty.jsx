@@ -4,34 +4,12 @@ import { Button } from "./ui/Button";
 import Waves from './ui/Waves';
 import { Line } from "react-chartjs-2";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-} from "chart.js";
-import { Card, CardContent } from "./ui/Card";
 
-import { Skeleton } from "./ui/Skeleton";
 
-import dayjs from "dayjs";
-import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
-import "leaflet/dist/leaflet.css";
+
 import ReservoirMap from "./ReservoirMap";
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend
-);
+
 
 const SelectCounty = ({currCounty, setCurrCounty, setCurrReservoir}) => {
     const [stationList, setStationList] = useState([]);
@@ -49,13 +27,13 @@ const SelectCounty = ({currCounty, setCurrCounty, setCurrReservoir}) => {
                );
      
                const response = await res.json();
-               const counties = response.result.map(c => 
-                ({ label : c.COUNTY_NAME.charAt(0).toUpperCase() + c.COUNTY_NAME.slice(1).toLowerCase(),
-                  value : parseInt(c.COUNTY_NUM,10)
-                })
-               );
+               let result = {};
+                response.result.forEach(c => {
+                  result[parseInt(c.COUNTY_NUM, 10)] =
+                    c.COUNTY_NAME.charAt(0).toUpperCase() + c.COUNTY_NAME.slice(1).toLowerCase();
+                });
               
-               setCountyList(counties);
+               setCountyList(result);
              } catch (err) {
                console.error("Error fetching all counties:", err);
              }
@@ -76,23 +54,24 @@ const SelectCounty = ({currCounty, setCurrCounty, setCurrReservoir}) => {
                 
                 if( s.STATION_NAME.includes('RESERVOIR')){
                     result.push({
-                    value: s.STATION_ID,
-                    label: s.STATION_NAME,
-                    latitude: s.LATITUDE,
-                    longitude: s.LONGITUDE
+                      value: s.STATION_ID,
+                      label: s.STATION_NAME,
+                      latitude: s.LATITUDE,
+                      longitude: s.LONGITUDE,
+                      county: countyList[parseInt(s.COUNTY_NUM, 10)],
+                      elevation: s.ELEVATION,
                     });
                 }
               });
               
               setReservoirStations(result);
-              console.log(result);
               setShowMap(true);
             } catch (err) {
               console.error("Error fetching all station metadata:", err);
             }
           };
     
-          //fetchAllCounties();
+          fetchAllCounties();
           fetchAllStations();
          }, []);
         
@@ -100,7 +79,7 @@ const SelectCounty = ({currCounty, setCurrCounty, setCurrReservoir}) => {
       
 
     return (
-        <div className="transition-all duration-500 ease-in-out transform">
+        <div className="w-[40%] transition-all duration-500 ease-in-out transform">
             
 
             <AnimatePresence>

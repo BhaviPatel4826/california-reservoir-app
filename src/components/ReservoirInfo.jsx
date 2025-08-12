@@ -19,6 +19,7 @@ import dayjs from "dayjs";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import ReservoirMap from "./ReservoirMap";
+import { data } from "autoprefixer";
 
 ChartJS.register(
   CategoryScale,
@@ -29,6 +30,7 @@ ChartJS.register(
   Tooltip,
   Legend
 );
+import { motion, AnimatePresence } from "framer-motion";
 
 
 
@@ -37,6 +39,9 @@ export default function ReservoirInfo({currReservoir, setCurrReservoir}) {
   const [reservoirData, setReservoirData] = useState([]);
   const [stationMeta, setStationMeta] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [percentage, setPercentage] = useState(0);
+  const [latest, setLatest] = useState(0);
+  const [showInfo, setShowInfo]  = useState(false);
 
   const [granularity, setGranularity] = useState({ value: "month", label: "This Year" });
     
@@ -60,17 +65,22 @@ export default function ReservoirInfo({currReservoir, setCurrReservoir}) {
       const [dataRes, metaRes] = await Promise.all([
         fetch(
           `https://corsproxy.io/?https://cdec.water.ca.gov/dynamicapp/req/JSONDataServlet?Stations=${currReservoir?.value}&SensorNums=6&dur_code=D&Start=${startDate}&End=${today}`
-        ),
-        fetch(
-          `https://corsproxy.io/?https://cdec.water.ca.gov/dynamicapp/req/StationMetaServlet?station_id=${currReservoir?.value}`
-        ),
+        )
+       
       ]);
 
       const dataJson = await dataRes.json();
-      const metaJson = await metaRes.json();
+      
 
       setReservoirData(dataJson || []);
-      setStationMeta(metaJson[0] || null);
+      if(reservoirData != []){
+      setLatest(Math.floor(dataJson[dataJson.length - 1].value) || 0);
+      setPercentage(Math.floor(dataJson[dataJson.length - 1].value * 100 / currReservoir.elevation ) || 0)
+      }
+      else{
+        setLatest(0);
+        setPercentage(0);
+      }
       console.log('sjdklsdjc')
       console.log(dataRes);
       
@@ -78,8 +88,11 @@ export default function ReservoirInfo({currReservoir, setCurrReservoir}) {
       console.error("Error fetching data:", error);
       setReservoirData([]);
       setStationMeta(null);
+      setTimeout(() => setShowInfo(true), 200);
     }
     setLoading(false);
+    
+    
   };
 
   // Fetch when query or granularity changes
@@ -92,19 +105,20 @@ export default function ReservoirInfo({currReservoir, setCurrReservoir}) {
 
   const groupByGranularity = (data, granularity) => {
     const grouped = {};
+    console.log(data);
     data.forEach((entry) => {
       const date = dayjs(entry.date);
+    
       let key;
       if (granularity === "year") {
-        key = date.format("YYYY");
-      } else if (granularity === "month") {
         key = date.format("YYYY-MM");
       } else {
-        key = date.format("YYYY-[W]WW");
-      }
+        key = date.format("MM-DD");
+      } 
       if (!grouped[key]) grouped[key] = [];
       grouped[key].push(parseFloat(entry.value));
     });
+    
 
     return Object.entries(grouped).map(([key, values]) => ({
       date: key,
@@ -157,20 +171,57 @@ export default function ReservoirInfo({currReservoir, setCurrReservoir}) {
   };
 
   return (
-    <div className="w-full flex">
+    <div className="w-[50%] m-h-[400px] flex justify-center">
+    <AnimatePresence>
+    { currReservoir &&showInfo && <motion.div
+              key="info"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              transition={{ duration: 0.4 }}
+              className="w-full flex flex-col items-center justify-center bg-white rounded-2xl shadow-lg p-6"
+
+              >
+   
         
-        <div>
-        {stationMeta && (
-            <div className="mb-10 text-center">
-                <h2 className="text-2xl font-semibold">{stationMeta.name} Reservoir</h2>
-                <p>Location: {stationMeta.county}</p>
-                <p>Lat: {stationMeta.latitude}, Lng: {stationMeta.longitude}</p>
-                <p>River Basin: {stationMeta.river_basin || "N/A"}</p>
-            </div>
+        
+      {currReservoir && (
+            <div className="w-full flex-col items-center justify-center text-center p-[6%]">
+                <h2 className="text-xl font-semibold">{currReservoir.label}</h2>
+                <br></br>
+                <p className="text-left pb-[2%]">Capacity <br></br> <b>{currReservoir.elevation} arce-feet</b></p>
+                
+               
+                {reservoirData.length >= 30 && percentage >= 0&&
+                <>
+                <p className="text-left pb-[2%]">Current water level <br></br> <b>{latest} acre-feet</b></p>
+               
+                
+                <div className="flex justify-between items-center">
+                 <div className="w-[80%] bg-gray-200 rounded h-3 mt-1 flex">
+                 <motion.div
+                className="bg-blue-500 h-3 rounded-full"
+                initial={{ width: 0 }}
+                animate={{ width: `${percentage}%` }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
+              >
+                 <div
+                   className="bg-blue-500 h-3 rounded-full"
+                   style={{ width: `${percentage}%` }}
+                 ></div>
+                 </motion.div>
+                  </div>
+                  <div className="text-xs mt-1 font-bold">{percentage}%</div>
+               </div>
+               
+               </>}
+              </div>
             )}
 
-        </div>
-        <div>
+        {reservoirData.length >=30 && <>
+         
+         
+
             <Select
                 options={[
                 { value: "year", label: "Last 10 Years" },
@@ -185,10 +236,10 @@ export default function ReservoirInfo({currReservoir, setCurrReservoir}) {
             
 
            
-            <Card className="shadow-xl rounded-2xl overflow-hidden mb-10">
+            <Card className=" w-[95%] rounded-2xl overflow-hidden mb-10">
                 <CardContent className="p-6">
                     {loading ? (
-                    <Skeleton className="w-60 h-50 rounded-xl" />
+                    <Skeleton className=" rounded-xl" />
                     ) : processedData.length > 0 ? (
                     <Line data={chartData} options={chartOptions} />
                     ) : (
@@ -198,9 +249,12 @@ export default function ReservoirInfo({currReservoir, setCurrReservoir}) {
                     )}
                 </CardContent>
             </Card>
-        </div>
+        </>}
       
      
+    
+    </motion.div>}
+    </AnimatePresence>
     </div>
   );
 }

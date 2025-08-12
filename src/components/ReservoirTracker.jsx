@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import SelectCounty from './SelectCounty'
 import ReservoirInfo from './ReservoirInfo';
+import Navbar from './Navbar';
 
 
 const ReservoirTracker = () => {
@@ -25,17 +26,10 @@ const ReservoirTracker = () => {
   return (
     <div
     className="min-h-screen min-w-screen p-8 transition-colors duration-500
-         bg-blue-500 to-white text-gray-900 flex flex-col items-center justify-center"
+         bg-blue-500 to-white text-gray-900 flex flex-col items-center justify-start"
       >
-       <div className="max-w-6xl mx-auto">
-              <div className="flex justify-between items-center mb-6 relative">
-                <h1 className="text-4xl font-bold text-center w-full text-white drop-shadow-sm">
-                  California Reservoir Tracker
-                </h1>
-               
-              </div>
-        </div>
-        <div className='flex'>
+       <Navbar />
+        <div className='w-[100%] flex items-start justify-center gap-4'>
           <SelectCounty 
             currCounty={currCounty}
             setCurrCounty={setCurrCounty}
