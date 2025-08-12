@@ -9,11 +9,6 @@ const Navbar = () => {
         </h1>
         <h3 className='text-white text-2xl'> Real-time reservior monitoring</h3> 
         </div>
-
-        <div className='text-xl w-[10%] text-white flex items-center justify-between'>
-            <ul>Home</ul>
-            <ul>About</ul>
-        </div>
     </div>
   )
 }

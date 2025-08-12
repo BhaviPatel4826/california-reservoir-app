@@ -1,9 +1,10 @@
 import React, { useState, useRef, useEffect } from "react";
 
-export default function Select({ options, value, currentValue, onChange, placeholder }) {
+export default function Select({ options, value, currentValue, onChange, placeholder, width }) {
   const [isOpen, setIsOpen] = useState(false);
   const ref = useRef();
-
+  console.log(currentValue);
+  console.log(options);
   // Close dropdown on outside click
   useEffect(() => {
     function handleClickOutside(e) {
@@ -15,17 +16,17 @@ export default function Select({ options, value, currentValue, onChange, placeho
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const selectedOption = options.find((opt) => opt === value);
+  
 
   return (
-    <div className="relative inline-block w-72" ref={ref}>
+    <div className={`relative inline-block ${width}`} ref={ref}>
       {/* Trigger */}
       <div
         className="bg-white  border-white rounded-lg px-3 py-2 shadow-md cursor-pointer select-none"
         onClick={() => setIsOpen((prev) => !prev)}
       >
-        {selectedOption ? (
-          <span className="text-blue-600 font-bold">{selectedOption.label}</span>
+        {currentValue ? (
+          <span className="text-blue-600 font-bold">{currentValue.label}</span>
         ) : (
           <span className="text-gray-500">{placeholder}</span>
         )}
@@ -38,8 +39,8 @@ export default function Select({ options, value, currentValue, onChange, placeho
             <div
               key={opt.value}
               className={`px-3 py-2 cursor-pointer ${
-                currentValue === opt
-                  ? "bg-blue-500 text-white font-semibold"
+                currentValue.value === opt.value
+                  ? "bg-gray-700 text-white font-semibold"
                   : "hover:bg-gray-100 text-gray-700"
               }`}
               onClick={() => {

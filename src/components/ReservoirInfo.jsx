@@ -34,7 +34,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 
 
-export default function ReservoirInfo({currReservoir, setCurrReservoir}) {
+export default function ReservoirInfo({currReservoir, setCurrReservoir, countyList}) {
   
   const [reservoirData, setReservoirData] = useState([]);
   const [stationMeta, setStationMeta] = useState(null);
@@ -47,50 +47,52 @@ export default function ReservoirInfo({currReservoir, setCurrReservoir}) {
     
   // Fetch based on granularity
   const fetchData = async (granularityValue = granularity) => {
-    setLoading(true);
 
-    let startDate;
-    const today = dayjs().subtract(1, "day").format("YYYY-MM-DD");
+    if(currReservoir){
+      setLoading(true);
 
-    if (granularityValue.value === "year") {
-      startDate = dayjs().subtract(10, "year").format("YYYY-MM-DD");
-    } else if (granularityValue.value === "month") {
-      startDate = dayjs().subtract(1, "year").format("YYYY-MM-DD");
-    } else {
-      // week granularity
-      startDate = dayjs().subtract(3, "month").format("YYYY-MM-DD");
-    }
+      let startDate;
+      const today = dayjs().subtract(1, "day").format("YYYY-MM-DD");
 
-    try {
-      const [dataRes, metaRes] = await Promise.all([
-        fetch(
-          `https://corsproxy.io/?https://cdec.water.ca.gov/dynamicapp/req/JSONDataServlet?Stations=${currReservoir?.value}&SensorNums=6&dur_code=D&Start=${startDate}&End=${today}`
-        )
-       
-      ]);
-
-      const dataJson = await dataRes.json();
-      
-
-      setReservoirData(dataJson || []);
-      if(reservoirData != []){
-      setLatest(Math.floor(dataJson[dataJson.length - 1].value) || 0);
-      setPercentage(Math.floor(dataJson[dataJson.length - 1].value * 100 / currReservoir.elevation ) || 0)
+      if (granularityValue.value === "year") {
+        startDate = dayjs().subtract(10, "year").format("YYYY-MM-DD");
+      } else if (granularityValue.value === "month") {
+        startDate = dayjs().subtract(1, "year").format("YYYY-MM-DD");
+      } else {
+        // week granularity
+        startDate = dayjs().subtract(3, "month").format("YYYY-MM-DD");
       }
-      else{
-        setLatest(0);
-        setPercentage(0);
-      }
-      console.log('sjdklsdjc')
-      console.log(dataRes);
+
+      try {
+        const [dataRes, metaRes] = await Promise.all([
+          fetch(
+            `https://corsproxy.io/?https://cdec.water.ca.gov/dynamicapp/req/JSONDataServlet?Stations=${currReservoir?.value}&SensorNums=6&dur_code=D&Start=${startDate}&End=${today}`
+          )
+        
+        ]);
+
+        const dataJson = await dataRes.json();
+        
+        console.log(dataJson);
+        setReservoirData(dataJson || []);
+        if(reservoirData != []){
+        setLatest(Math.floor(dataJson[dataJson.length - 1].value) || 0);
+        setPercentage(Math.floor(dataJson[dataJson.length - 1].value * 100 / currReservoir.elevation ) || 0)
+        }
+        else{
+          setLatest(0);
+          setPercentage(0);
+        }
       
-    } catch (error) {
-      console.error("Error fetching data:", error);
-      setReservoirData([]);
-      setStationMeta(null);
-      setTimeout(() => setShowInfo(true), 200);
+        
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        setReservoirData([]);
+        setStationMeta(null);
+        setTimeout(() => setShowInfo(true), 200);
+      }
+      setLoading(false);
     }
-    setLoading(false);
     
     
   };
@@ -105,18 +107,20 @@ export default function ReservoirInfo({currReservoir, setCurrReservoir}) {
 
   const groupByGranularity = (data, granularity) => {
     const grouped = {};
-    console.log(data);
+    console.log(granularity);
     data.forEach((entry) => {
       const date = dayjs(entry.date);
     
       let key;
-      if (granularity === "year") {
-        key = date.format("YYYY-MM");
+      if (granularity.value === "year") {
+        key = date.format("YYYY");
       } else {
-        key = date.format("MM-DD");
+        key = date.format("YYYY-MM");
       } 
       if (!grouped[key]) grouped[key] = [];
-      grouped[key].push(parseFloat(entry.value));
+      if(entry.value >= 0){
+        console.log(key);
+      grouped[key].push(parseFloat(entry.value));}
     });
     
 
@@ -145,7 +149,8 @@ export default function ReservoirInfo({currReservoir, setCurrReservoir}) {
   };
 
   const chartOptions = {
-    responsive: true,
+   
+   
     plugins: {
       legend: {
         position: "top",
@@ -155,7 +160,7 @@ export default function ReservoirInfo({currReservoir, setCurrReservoir}) {
       },
       title: {
         display: true,
-        text: `Water Levels by ${granularity.value.charAt(0).toUpperCase() + granularity.value.slice(1)}`,
+        text: `Water Levels`,
         color: "#1f2937",
       },
     },
@@ -171,7 +176,7 @@ export default function ReservoirInfo({currReservoir, setCurrReservoir}) {
   };
 
   return (
-    <div className="w-[50%] m-h-[400px] flex justify-center">
+    <div className="w-[50%] h-[650px] flex justify-center">
     <AnimatePresence>
     { currReservoir &&showInfo && <motion.div
               key="info"
@@ -179,7 +184,7 @@ export default function ReservoirInfo({currReservoir, setCurrReservoir}) {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 10 }}
               transition={{ duration: 0.4 }}
-              className="w-full flex flex-col items-center justify-center bg-white rounded-2xl shadow-lg p-6"
+              className="w-full flex flex-col items-center justify-start bg-white rounded-2xl shadow-lg p-4"
 
               >
    
@@ -189,12 +194,13 @@ export default function ReservoirInfo({currReservoir, setCurrReservoir}) {
             <div className="w-full flex-col items-center justify-center text-center p-[6%]">
                 <h2 className="text-xl font-semibold">{currReservoir.label}</h2>
                 <br></br>
-                <p className="text-left pb-[2%]">Capacity <br></br> <b>{currReservoir.elevation} arce-feet</b></p>
+                <p className="text-left pb-[2%]" >County: <b>{countyList[parseInt(currReservoir.county_id, 10)]}</b></p>
+                <p className="text-left pb-[2%]">Capacity: <b>{currReservoir.elevation} arce-feet</b></p>
                 
                
-                {reservoirData.length >= 30 && percentage >= 0&&
+                {reservoirData.length >= 30 && percentage >= 0 &&
                 <>
-                <p className="text-left pb-[2%]">Current water level <br></br> <b>{latest} acre-feet</b></p>
+                <p className="text-left pb-[2%]">Current water level: <b>{latest} acre-feet</b></p>
                
                 
                 <div className="flex justify-between items-center">
@@ -218,7 +224,7 @@ export default function ReservoirInfo({currReservoir, setCurrReservoir}) {
               </div>
             )}
 
-        {reservoirData.length >=30 && <>
+          {reservoirData.length >= 30 && percentage >= 0 ?(<div className="flex-col justify-start w-full h-full pl-[6%]">
          
          
 
@@ -231,15 +237,15 @@ export default function ReservoirInfo({currReservoir, setCurrReservoir}) {
                 currentValue={granularity}
                 onChange={setGranularity}
                 placeholder="Granularity"
-                width="w-44"
+                width="w-[127px]"
             />
             
 
            
-            <Card className=" w-[95%] rounded-2xl overflow-hidden mb-10">
-                <CardContent className="p-6">
+            <Card className=" w-[95%] h-[310px] rounded-2xl overflow-hidden">
+                <CardContent className="p-3">
                     {loading ? (
-                    <Skeleton className=" rounded-xl" />
+                    <Skeleton className="rounded-xl h-[270px]" />
                     ) : processedData.length > 0 ? (
                     <Line data={chartData} options={chartOptions} />
                     ) : (
@@ -249,7 +255,7 @@ export default function ReservoirInfo({currReservoir, setCurrReservoir}) {
                     )}
                 </CardContent>
             </Card>
-        </>}
+        </div>): (<p className="text-left pb-[2%]">No data found for the reservior</p>)}
       
      
     

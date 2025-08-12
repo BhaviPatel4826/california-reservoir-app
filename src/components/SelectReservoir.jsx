@@ -11,34 +11,14 @@ import ReservoirMap from "./ReservoirMap";
 
 
 
-const SelectCounty = ({currCounty, setCurrCounty, setCurrReservoir}) => {
+const SelectReservoir = ({currCounty, setCurrCounty, setCurrReservoir}) => {
     const [stationList, setStationList] = useState([]);
-    const [countyList, setCountyList] = useState([]);
+    
     const [newCounty, setNewCounty] = useState([]);
     const [showMap, setShowMap] = useState(false);
     const [reservoirStations, setReservoirStations] = useState([]);
      
      useEffect(() => {
-         
-           const fetchAllCounties = async () => {
-             try {
-               const res = await fetch(
-                 'https://corsproxy.io/?https://cdec.water.ca.gov/CDECStationServices/CDecServlet/getCounty'
-               );
-     
-               const response = await res.json();
-               let result = {};
-                response.result.forEach(c => {
-                  result[parseInt(c.COUNTY_NUM, 10)] =
-                    c.COUNTY_NAME.charAt(0).toUpperCase() + c.COUNTY_NAME.slice(1).toLowerCase();
-                });
-              
-               setCountyList(result);
-             } catch (err) {
-               console.error("Error fetching all counties:", err);
-             }
-           }
-         
            
            const fetchAllStations = async () => {
             try {
@@ -58,8 +38,8 @@ const SelectCounty = ({currCounty, setCurrCounty, setCurrReservoir}) => {
                       label: s.STATION_NAME,
                       latitude: s.LATITUDE,
                       longitude: s.LONGITUDE,
-                      county: countyList[parseInt(s.COUNTY_NUM, 10)],
                       elevation: s.ELEVATION,
+                      county_id: s.COUNTY_NUM,
                     });
                 }
               });
@@ -70,8 +50,6 @@ const SelectCounty = ({currCounty, setCurrCounty, setCurrReservoir}) => {
               console.error("Error fetching all station metadata:", err);
             }
           };
-    
-          fetchAllCounties();
           fetchAllStations();
          }, []);
         
@@ -106,4 +84,4 @@ const SelectCounty = ({currCounty, setCurrCounty, setCurrReservoir}) => {
     )
 }
 
-export default SelectCounty
+export default SelectReservoir
