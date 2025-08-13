@@ -1,4 +1,4 @@
-# 💧 California Reservoir App
+# 💧 California Reservoir Water Level Tracker
 
 A web application that displays **real-time water levels** of California’s reservoirs using interactive charts and maps.
 
@@ -7,6 +7,13 @@ Built with:
 - **Chart.js** – Interactive data visualization
 - **Leaflet** – Interactive maps for reservoir locations
 
+---
+
+## 📸 Preview
+
+![Screenshot](screenshot/app.png)
+
+---
 
 ## ✨ Features
 
